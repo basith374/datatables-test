@@ -67,25 +67,39 @@ function escapeRegExp(string){
 
 new Vue({
     data: {
-        rows: [],
-        cached: [],
+        items: [],
         curPage: 1,
-        limit: 10
+        limit: 10,
+        search: ''
     },
     computed: {
         totalPages: function() {
-            return Math.ceil(this.rows.length / this.limit);
+            return Math.ceil(this.filteredItems.length / this.limit);
         },
         curPageItems: function() {
             var startIndex = this.curPage / this.limit;
-            console.log('redrawing ' + this.rows.length )
-            return this.rows.slice(startIndex, startIndex + this.limit);
+            return this.filteredItems.slice(startIndex, startIndex + this.limit);
+        },
+        filteredItems: function() {
+            var items = this.items;
+            if(this.search) {
+                var regex = new RegExp('.*' + escapeRegExp(this.search) + '.*', 'i');
+                items = this.items.filter(function(row) {
+                    for(key in row) {
+                        if(regex.test(row[key])) {
+                            return true
+                        }
+                    }
+                    return false;
+                });
+            }
+            return items;
         },
         pages: function() {
             var limit = this.limit;
-            var rows = this.rows;
+            var items = this.filteredItems;
             var curPage = this.curPage;
-            var length = rows.length;
+            var length = items.length;
             var totalPages = this.totalPages;
             if(totalPages > 7) {
                 var pages = []; // paginated pages
@@ -140,35 +154,12 @@ new Vue({
             if(xhr.status == 200) {
                 var data = JSON.parse(xhr.responseText);
                 // console.log(data);
-                self.rows = data.items;
+                self.items = data.items;
             }
         }
         xhr.send();
     },
     methods: {
-        change: function(e) {
-            this.curPage = 1;
-            var search = e.target.value;
-            if(search) {
-                if(!this.cached.length) {
-                    console.log('caching');
-                    this.cached = this.rows;
-                }
-                var regex = new RegExp('.*' + escapeRegExp(search) + '.*', 'i');
-                this.rows = this.cached.filter(function(row) {
-                    for(key in row) {
-                        if(regex.test(row[key])) {
-                            return true
-                        }
-                    }
-                    return false;
-                });
-            } else {
-                console.log('restoring cache');
-                this.rows = this.cached;
-                this.cached = [];
-            }
-        },
         changePage: function(page, e) {
             e.preventDefault();
             if(Number.isInteger(page)) {
