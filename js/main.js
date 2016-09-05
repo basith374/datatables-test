@@ -1,84 +1,67 @@
-$("#table")
-	.DataTable({
-        // dom: 'Bfrtip',
-		buttons: [
-            {
-                extend: 'print',
-                customize: function(win) {
-                    $(win.document.body)
-                        .css('font-size', '10pt');
-                    $(win.document.body)
-                        .find('table')
-                        .addClass('compact')
-                        .css('font-size', 'inherit');
-                },
-                footer: true
-            }
-		],
-		ajax: {
-			url: 'data.json',
-			dataSrc: 'items'
-		},
-		columns: [
-			{data: 'id'},
-			{data: 'name'},
-			{data: 'company'},
-			{data: 'email'},
-			{data: 'phone'},
-			{data: 'balance'}
-		],
-		footerCallback: function ( row, data, start, end, display ) {
-            var api = this.api(), data;
- 
-            // Remove the formatting to get integer data for summation
-            var intVal = function ( i ) {
-                return typeof i === 'string' ?
-                    i.replace(/[\$,]/g, '')*1 :
-                    typeof i === 'number' ?
-                        i : 0;
-            };
- 
-            // Total over all pages
-            total = api
-                .column( 5, { search: 'applied'} )
-                .data()
-                .reduce( function (a, b) {
-                    return intVal(a) + intVal(b);
-                }, 0 );
- 
-            // Total over this page
-            pageTotal = api
-                .column( 5, { page: 'current'} )
-                .data()
-                .reduce( function (a, b) {
-                    return intVal(a) + intVal(b);
-                }, 0 );
- 
-            // Update footer
-            $( api.column( 5 ).footer() ).html(
-                '$'+pageTotal +' ( $'+ total +' total )'
-            );
+
+Vue.component('checkbox', {
+    template: '<div class="icheckbox_square-blue" v-bind:class="{checked:selected===true}" @click="clicked"></div>',
+    props: ['item'],
+    data: function() {
+        return {
+            selected: false
         }
-	});
+    },
+    methods: {
+        clicked: function() {
+            var self = this;
+            this.selected = !this.selected;
+            if(this.item) {
+                this.item.selected = this.selected;
+            }
+            this.$dispatch('change', this.selected);
+        }
+    },
+    ready: function() {
+        if(this.item)
+            this.$watch('item.selected', function(a) {
+                this.selected = a;
+            })
+    }
+});
 
 function escapeRegExp(string){
   return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); // $& means the whole matched string
 }
 
 new Vue({
+    el: 'body',
     data: {
         items: [],
-        curPage: 1,
+        curPage: 0,
         limit: 10,
-        search: ''
+        search: '',
+        asc: true,
+        sortCol: 0,
+        keys: ['id', 'name', 'company', 'email', 'phone', 'balance']
     },
     computed: {
+        pageTotal: function() {
+            return this.curPageItems.map(function(item) {
+                return item.balance;
+            }).reduce(function(a, b) {
+                return a + b;
+            }, 0);
+        },
+        startIndex: function() {
+            return this.curPageItems.length ? this.curPage * this.limit + 1 : 0;
+        },
+        endIndex: function() {
+            return this.curPage * this.limit + this.curPageItems.length;
+        },
         totalPages: function() {
             return Math.ceil(this.filteredItems.length / this.limit);
         },
         curPageItems: function() {
-            var startIndex = this.curPage / this.limit;
-            return this.filteredItems.slice(startIndex, startIndex + this.limit);
+            var limit = parseInt(this.limit);
+            var startIndex = this.curPage * limit;
+            // console.log('slicing from ' + startIndex + ' to ' + (startIndex + this.limit))
+            return this.filteredItems.slice(startIndex, startIndex + limit);
         },
         filteredItems: function() {
             var items = this.items;
@@ -87,13 +70,29 @@ new Vue({
                 items = this.items.filter(function(row) {
                     for(key in row) {
                         if(regex.test(row[key])) {
-                            return true
+                            return true;
                         }
                     }
                     return false;
                 });
             }
+            items = _.sortBy(items, this.keys[this.sortCol]);
+            if(this.asc === false) {
+                items.reverse();
+            }
             return items;
+        },
+        mid: function() {
+            if(this.curPage < 4) {
+                return this.range(3, 3);
+            } else if(this.curPage > this.totalPages - 4) {
+                // console.log('end')
+                var start = this.totalPages - 4;
+                return this.range(start, 3);
+            } else {
+                var start = this.curPage;
+                return this.range(start, 3);
+            }
         },
         pages: function() {
             var limit = this.limit;
@@ -105,12 +104,12 @@ new Vue({
                 var pages = []; // paginated pages
 
                 // first page
-                pages.push({index:1});
+                pages.push({index : 1});
                 // front cover
                 if(curPage < 5) {
-                    pages.push({index:2});
+                    pages.push({index : 2});
                 } else {
-                    pages.push({index:'...'});
+                    pages.push({index : '...'});
                 }
                 // middle "3"
                 var middle_start = curPage - 1;
@@ -123,29 +122,28 @@ new Vue({
                     middle_end = totalPages - 1;
                 }
                 for(var i = middle_start; i < middle_end; i++) {
-                    pages.push({index: i});
+                    pages.push({index : i});
                 }
                 // back cover
                 if(curPage < totalPages - 3) {
-                    pages.push({index:'...'});
+                    pages.push({index : '...'});
                 } else {
                     var back_cover = totalPages - 1;
-                    pages.push({index:back_cover});
+                    pages.push({index : back_cover});
                 }
                 // last page
-                pages.push({index:totalPages});
+                pages.push({index : totalPages});
 
                 return pages;
             } else {
                 var pages = [];
                 for(var i = 1; i <= totalPages; i++) {
-                    pages.push({index: i});
+                    pages.push({index : i});
                 }
                 return pages;
             }
         }
     },
-    el: 'body',
     ready: function() {
         var self = this;
         var xhr = new XMLHttpRequest();
@@ -153,6 +151,9 @@ new Vue({
         xhr.onload = function() {
             if(xhr.status == 200) {
                 var data = JSON.parse(xhr.responseText);
+                data.items.forEach(function(item) {
+                    item.selected = false;
+                });
                 // console.log(data);
                 self.items = data.items;
             }
@@ -160,22 +161,62 @@ new Vue({
         xhr.send();
     },
     methods: {
-        changePage: function(page, e) {
+        selectAll : function(selected) {
+            this.curPageItems.forEach(function(item) {
+                item.selected = selected;
+            });
+        },
+        check: function(selected) {
+            var master = this.$refs.selectAll;
+            if(selected) {
+                var checked = this.curPageItems.filter(function(item) {
+                    return item.selected;
+                }).length;
+                if(checked === this.limit) {
+                    master.selected = true;
+                }
+            } else {
+                var checked = this.curPageItems.filter(function(item) {
+                    return item.selected;
+                }).length;
+                if(checked === 0) {
+                    master.selected = false;
+                }
+            }
+        },
+        sortToggle: function(e) {
+            var index = $(e.target).index();
+            if(index == this.sortCol) {
+                this.asc = !this.asc;
+            } else {
+                this.asc = true;
+                this.sortCol = index;
+            }
+        },
+        changePage: function(e) {
             e.preventDefault();
-            if(Number.isInteger(page)) {
-                this.curPage = page;
+            var page = parseInt(e.target.innerHTML);
+            // console.log('changing page to ' + page);
+            if(isNaN(page) !== true) {
+                // console.log('bingo')
+                this.curPage = page - 1;
             }
         },
         next: function(e) {
             e.preventDefault();
-            if(this.curPage < this.totalPages)
-            this.curPage++;
+            if(this.curPage < this.totalPages - 1)
+                this.curPage++;
         },
         previous: function(e) {
             e.preventDefault();
-            if(this.curPage > 1) {
+            if(this.curPage > 0) {
                 this.curPage--;
             }
+        },
+        range: function(start, count) {
+            return Array.apply(0, Array(count)).map(function(element, index) {
+                return index + start;
+            });
         }
     }
 });

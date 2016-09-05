@@ -1,0 +1,258 @@
+<!doctype html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7" lang=""> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8" lang=""> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9" lang=""> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang=""> <!--<![endif]-->
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <title>Datatables Test</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="apple-touch-icon" href="apple-touch-icon.png">
+
+        <link rel="stylesheet" href="css/bootstrap.min.css">
+        <style>
+            body {
+                /*padding-top: 50px;*/
+                /*padding-bottom: 20px;*/
+            }
+        </style>
+        <link rel="stylesheet" href="css/bootstrap-theme.min.css">
+        <!-- <link rel="stylesheet" href="css/jquery.dataTables.css"> -->
+        <link rel="stylesheet" href="css/dataTables.bootstrap.css">
+        <link rel="stylesheet" href="css/buttons.bootstrap.css">
+        <!-- <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/bs/dt-1.10.12/b-1.2.2/b-print-1.2.2/datatables.css"/> -->
+        <link rel="stylesheet" href="css/main.css">
+        <link rel="stylesheet" href="css/blue.css">
+        <style>
+          .lil-control select {
+            width: 80px;
+          }
+          .lil-control input {
+            width: 200px;
+          }
+          .lil-control input, .lil-control select {
+            display: inline-block;
+          }
+          .tableContainer table {
+            margin: 10px 0;
+          }
+          .tableContainer .table th {
+            padding-right: 25px;
+            position: relative;
+            cursor: pointer;
+            -webkit-user-select: none;
+          }
+          .tableContainer .table th:after {
+            content: "\e150";
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            display: block;
+            font-family: 'Glyphicons Halflings';
+            opacity: .2;
+          }
+          .tableContainer .table th.asc:after {
+            content: "\e155";
+            opacity: .5;
+          }
+          .tableContainer .table th.desc:after {
+            content: "\e156";
+            opacity: .5;
+          }
+          .tableContainer .pagination {
+            margin: 0;
+          }
+          .checkBox {
+            width: 16px;
+            height: 16px;
+            background-image: url('/img/unchecked.png');
+            display: inline-block;
+          }
+          .checkBox.checked {
+            background-image: url('/img/checked.png');
+          }
+        </style>
+        <script src="js/vendor/modernizr-2.8.3-respond-1.4.2.min.js"></script>
+    </head>
+    <body>
+        <!--[if lt IE 8]>
+            <p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
+        <![endif]-->
+    <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="#">Project name</a>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+          <form class="navbar-form navbar-right" role="form">
+            <div class="form-group">
+              <input type="text" placeholder="Email" class="form-control">
+            </div>
+            <div class="form-group">
+              <input type="password" placeholder="Password" class="form-control">
+            </div>
+            <button type="submit" class="btn btn-success">Sign in</button>
+          </form>
+        </div><!--/.navbar-collapse -->
+      </div>
+    </nav>
+
+    <!-- Main jumbotron for a primary marketing message or call to action -->
+    <div class="jumbotron" style="margin-top:50px;">
+      <div class="container">
+        <h1>Hello, world!</h1>
+        <p>This is a template for a simple marketing or informational website. It includes a large callout called a jumbotron and three supporting pieces of content. Use it as a starting point to create something more unique.</p>
+        <p><a class="btn btn-primary btn-lg" href="#" role="button">Learn more &raquo;</a></p>
+      </div>
+    </div>
+
+    <div class="container">
+
+      <div class="row">
+        <div class="col-md-12">
+          <h4>Vue Table</h4>
+          <div class="tableContainer">
+            <div class="row">
+              <div class="col-md-6">
+                <div class="lil-control">
+                  Show :
+                  <select class="form-control input-sm" v-model="limit">
+                    <option value="10">10</option>
+                    <option value="25">25</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                  </select>
+                  entries
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="pull-right lil-control">
+                  Search : <input type="text" class="form-control input-sm" v-model="search">
+                </div>
+                <div class="clearfix"></div>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-12">
+                <table class="table table-striped" id="vueTable">
+                  <thead>
+                    <tr>
+                      <th>
+                        <checkbox @change="selectAll" v-ref:select-all></checkbox>
+                      </th>
+                      <th @click="sortToggle" v-bind:class="{asc:asc&&sortCol==0,desc:!asc&&sortCol==0}">Id</th>
+                      <th @click="sortToggle" v-bind:class="{asc:asc&&sortCol==1,desc:!asc&&sortCol==1}">Name</th>
+                      <th @click="sortToggle" v-bind:class="{asc:asc&&sortCol==2,desc:!asc&&sortCol==2}">Company</th>
+                      <th @click="sortToggle" v-bind:class="{asc:asc&&sortCol==3,desc:!asc&&sortCol==3}">Email</th>
+                      <th @click="sortToggle" v-bind:class="{asc:asc&&sortCol==4,desc:!asc&&sortCol==4}">Phone</th>
+                      <th @click="sortToggle" v-bind:class="{asc:asc&&sortCol==5,desc:!asc&&sortCol==5}">Balance</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="row in curPageItems">
+                      <td>
+                        <checkbox @change="check" :item="row"></checkbox>
+                      </td>
+                      <td>{{ row.id }}</td>
+                      <td>{{ row.name }}</td>
+                      <td>{{ row.company }}</td>
+                      <td>{{ row.email }}</td>
+                      <td>{{ row.phone }}</td>
+                      <td>{{ row.balance }}</td>
+                    </tr>
+                  </tbody>
+                  <tfoot>
+                    <tr>
+                      <td colspan="6" style="text-align:right;">Total</td>
+                      <td>{{ pageTotal }}</td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-6">
+                Showing {{ startIndex }} to {{ endIndex }} of {{ filteredItems.length }} entiries
+              </div>
+              <div class="col-md-6">
+                <ul class="pagination pull-right" v-if="totalPages < 7">
+                  <li v-for="i in range(0, totalPages)"  v-bind:class="{active: curPage == i}">
+                    <a href="#" @click="changePage">{{ i + 1 }}</a>
+                  </li>
+                </ul>
+                <ul class="pagination pull-right" v-if="totalPages > 6">
+                  <li v-bind:class="{disabled: curPage == 0}">
+                    <a href="#" @click="previous">Previous</a>
+                  </li>
+                  <li v-bind:class="{active: curPage == 0}">
+                    <a href="#" @click="changePage">1</a>
+                  </li>
+                  <li v-bind:class="{disabled: curPage > 3, active: curPage == 1}">
+                    <a href="#" @click="changePage">{{ curPage > 3 ? '...' : 2 }}</a>
+                  </li>
+                  <li v-for="i in mid"  v-bind:class="{active: curPage == i - 1}">
+                    <a href="#" @click="changePage">{{ i }}</a>
+                  </li>
+                  <li v-bind:class="{disabled: curPage < totalPages - 4, active: curPage == totalPages - 2}">
+                    <a href="#" @click="changePage">{{ curPage < totalPages - 4 ? '...' : totalPages - 1 }}</a>
+                  </li>
+                  <li v-bind:class="{active: curPage == totalPages - 1}">
+                    <a href="#" @click="changePage">{{ totalPages }}</a>
+                  </li>
+                  <li v-bind:class="{disabled: curPage == totalPages - 1}">
+                    <a href="#" @click="next">Next</a>
+                  </li>
+                </ul>
+                <div class="clearfix"></div>
+              </div>
+            </div>
+          </div><!-- tableContainer -->
+        </div>
+      </div>
+      <!-- Example row of columns -->
+      <div class="row">
+        <div class="col-md-4">
+          <h2>Heading</h2>
+          <p>Donec id elit non mi porta gravida at eget metus. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Etiam porta sem malesuada magna mollis euismod. Donec sed odio dui. </p>
+          <p><a class="btn btn-default" href="#" role="button">View details &raquo;</a></p>
+        </div>
+        <div class="col-md-4">
+          <h2>Heading</h2>
+          <p>Donec id elit non mi porta gravida at eget metus. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Etiam porta sem malesuada magna mollis euismod. Donec sed odio dui. </p>
+          <p><a class="btn btn-default" href="#" role="button">View details &raquo;</a></p>
+       </div>
+        <div class="col-md-4">
+          <h2>Heading</h2>
+          <p>Donec sed odio dui. Cras justo odio, dapibus ac facilisis in, egestas eget quam. Vestibulum id ligula porta felis euismod semper. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus.</p>
+          <p><a class="btn btn-default" href="#" role="button">View details &raquo;</a></p>
+        </div>
+      </div>
+
+      <hr>
+
+      <footer style="margin-bottom:20px;">
+        <p>&copy; Company 2015</p>
+      </footer>
+    </div> <!-- /container -->        
+        <!-- <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.js"></script> -->
+        <script>window.jQuery || document.write('<script src="js/vendor/jquery-1.11.2.js"><\/script>')</script>
+
+        <script src="js/vendor/bootstrap.min.js"></script>
+        <script src="js/vendor/icheck.min.js"></script>
+        <script src="js/vendor/underscore.js"></script>
+        <script src="js/vendor/vue.js"></script>
+ 
+        <!-- <script src="https://cdn.datatables.net/v/bs/dt-1.10.12/b-1.2.2/b-print-1.2.2/datatables.js"></script> -->
+
+
+        <script src="js/main.js"></script>
+    </body>
+</html>
