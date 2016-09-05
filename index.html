@@ -135,7 +135,7 @@
               </div>
               <div class="col-md-6">
                 <div class="pull-right lil-control">
-                  Search : <input type="text" class="form-control input-sm" v-model="search">
+                  Search : <input type="text" class="form-control input-sm" @input="newSearch" v-model="search">
                 </div>
                 <div class="clearfix"></div>
               </div>
@@ -148,12 +148,7 @@
                       <th>
                         <checkbox @change="selectAll" v-ref:select-all></checkbox>
                       </th>
-                      <th @click="sortToggle" v-bind:class="{asc:asc&&sortCol==0,desc:!asc&&sortCol==0}">Id</th>
-                      <th @click="sortToggle" v-bind:class="{asc:asc&&sortCol==1,desc:!asc&&sortCol==1}">Name</th>
-                      <th @click="sortToggle" v-bind:class="{asc:asc&&sortCol==2,desc:!asc&&sortCol==2}">Company</th>
-                      <th @click="sortToggle" v-bind:class="{asc:asc&&sortCol==3,desc:!asc&&sortCol==3}">Email</th>
-                      <th @click="sortToggle" v-bind:class="{asc:asc&&sortCol==4,desc:!asc&&sortCol==4}">Phone</th>
-                      <th @click="sortToggle" v-bind:class="{asc:asc&&sortCol==5,desc:!asc&&sortCol==5}">Balance</th>
+                      <th v-for="col in cols" @click="sortToggle(col)" v-bind:class="{asc:asc&&sortCol==col,desc:!asc&&sortCol==col}">{{ col | ucfirst }}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -161,12 +156,7 @@
                       <td>
                         <checkbox @change="check" :item="row"></checkbox>
                       </td>
-                      <td>{{ row.id }}</td>
-                      <td>{{ row.name }}</td>
-                      <td>{{ row.company }}</td>
-                      <td>{{ row.email }}</td>
-                      <td>{{ row.phone }}</td>
-                      <td>{{ row.balance }}</td>
+                      <td v-for="col in cols">{{ row[col] }}</td>
                     </tr>
                   </tbody>
                   <tfoot>

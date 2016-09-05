@@ -18,10 +18,18 @@ Vue.component('checkbox', {
         }
     },
     ready: function() {
-        if(this.item)
+        if(this.item) {
+            this.selected = this.item.selected;
             this.$watch('item.selected', function(a) {
                 this.selected = a;
             })
+        }
+    }
+});
+
+Vue.filter('ucfirst', {
+    read: function(a) {
+        return a.substr(0, 1).toUpperCase() + a.substr(1);
     }
 });
 
@@ -37,10 +45,13 @@ new Vue({
         limit: 10,
         search: '',
         asc: true,
-        sortCol: 0,
-        keys: ['id', 'name', 'company', 'email', 'phone', 'balance']
+        sortCol: 'id',
+        cols: ['id', 'name', 'company', 'email', 'phone', 'balance']
     },
     computed: {
+        offset: function() {
+            return this.limit * this.curPage;
+        },
         pageTotal: function() {
             return this.curPageItems.map(function(item) {
                 return item.balance;
@@ -76,7 +87,7 @@ new Vue({
                     return false;
                 });
             }
-            items = _.sortBy(items, this.keys[this.sortCol]);
+            items = _.sortBy(items, this.sortCol);
             if(this.asc === false) {
                 items.reverse();
             }
@@ -92,55 +103,6 @@ new Vue({
             } else {
                 var start = this.curPage;
                 return this.range(start, 3);
-            }
-        },
-        pages: function() {
-            var limit = this.limit;
-            var items = this.filteredItems;
-            var curPage = this.curPage;
-            var length = items.length;
-            var totalPages = this.totalPages;
-            if(totalPages > 7) {
-                var pages = []; // paginated pages
-
-                // first page
-                pages.push({index : 1});
-                // front cover
-                if(curPage < 5) {
-                    pages.push({index : 2});
-                } else {
-                    pages.push({index : '...'});
-                }
-                // middle "3"
-                var middle_start = curPage - 1;
-                var middle_end = curPage + 2;
-                if(curPage < 5) {
-                    middle_start = 3;
-                    middle_end = 6;
-                } else if(curPage > totalPages - 3) {
-                    middle_start = totalPages - 4;
-                    middle_end = totalPages - 1;
-                }
-                for(var i = middle_start; i < middle_end; i++) {
-                    pages.push({index : i});
-                }
-                // back cover
-                if(curPage < totalPages - 3) {
-                    pages.push({index : '...'});
-                } else {
-                    var back_cover = totalPages - 1;
-                    pages.push({index : back_cover});
-                }
-                // last page
-                pages.push({index : totalPages});
-
-                return pages;
-            } else {
-                var pages = [];
-                for(var i = 1; i <= totalPages; i++) {
-                    pages.push({index : i});
-                }
-                return pages;
             }
         }
     },
@@ -161,8 +123,12 @@ new Vue({
         xhr.send();
     },
     methods: {
+        newSearch: function() {
+            this.curPage = 0;
+        },
         selectAll : function(selected) {
-            this.curPageItems.forEach(function(item) {
+            var target = selected ? this.curPageItems : this.items;
+            target.forEach(function(item) {
                 item.selected = selected;
             });
         },
@@ -184,13 +150,12 @@ new Vue({
                 }
             }
         },
-        sortToggle: function(e) {
-            var index = $(e.target).index();
-            if(index == this.sortCol) {
+        sortToggle: function(col) {
+            if(col == this.sortCol) {
                 this.asc = !this.asc;
             } else {
                 this.asc = true;
-                this.sortCol = index;
+                this.sortCol = col;
             }
         },
         changePage: function(e) {
