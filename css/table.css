@@ -1,0 +1,16 @@
+body {
+	font-family: sans-serif;
+}
+th, td {
+	padding: 2px 5px;
+	vertical-align: top;
+}
+table, th, td {
+	border: 1px solid #555;
+	font-size: 12pt;
+}
+table {
+    border-collapse: collapse;
+    width: 100%;
+}
+

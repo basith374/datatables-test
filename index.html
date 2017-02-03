@@ -20,12 +20,16 @@
         </style>
         <link rel="stylesheet" href="css/bootstrap-theme.min.css">
         <!-- <link rel="stylesheet" href="css/jquery.dataTables.css"> -->
+
         <link rel="stylesheet" href="css/dataTables.bootstrap.css">
         <link rel="stylesheet" href="css/buttons.bootstrap.css">
-        <!-- <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/bs/dt-1.10.12/b-1.2.2/b-print-1.2.2/datatables.css"/> -->
+
         <link rel="stylesheet" href="css/main.css">
         <link rel="stylesheet" href="css/blue.css">
         <style>
+          .lil-control {
+            display: inline-block;
+          }
           .lil-control select {
             width: 80px;
           }
@@ -74,6 +78,7 @@
             background-image: url('/img/checked.png');
           }
         </style>
+        <link href="css/table.css" rel="stylesheet" media="print">
         <script src="js/vendor/modernizr-2.8.3-respond-1.4.2.min.js"></script>
     </head>
     <body>
@@ -118,10 +123,36 @@
 
       <div class="row">
         <div class="col-md-12">
-          <h4>Vue Table</h4>
+
+          <h3>Data Table</h3>
+          <table class="table table-striped" id="dataTable">
+            <thead>
+              <tr>
+                <th>Id</th>
+                <th>Name</th>
+                <th>Company</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Balance</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="5" align="right">Total</td>
+                <td></td>
+              </tr>
+            </tfoot>
+          </table>
+
+          <h3>Vue Table</h3>
           <div class="tableContainer">
             <div class="row">
               <div class="col-md-6">
+                <button class="btn btn-default" id="printBtn" @click="printTable">Print</button>
                 <div class="lil-control">
                   Show :
                   <select class="form-control input-sm" v-model="limit">
@@ -240,8 +271,12 @@
         <script src="js/vendor/underscore.js"></script>
         <script src="js/vendor/vue.js"></script>
  
-        <!-- <script src="https://cdn.datatables.net/v/bs/dt-1.10.12/b-1.2.2/b-print-1.2.2/datatables.js"></script> -->
-
+        <script src="js/vendor/jquery.dataTables.js"></script>
+        <script src="js/vendor/dataTables.bootstrap.js"></script>
+        <script src="js/vendor/dataTables.buttons.js"></script>
+        <script src="js/vendor/buttons.bootstrap.js"></script>
+        <script src="js/vendor/buttons.print.js"></script>
+        <script src="js/vendor/buttons.colVis.js"></script>
 
         <script src="js/main.js"></script>
     </body>

@@ -1,4 +1,83 @@
 
+$(document).ready(function() {
+    $('#dataTable').DataTable({
+        ajax: {
+            url: 'http://www.pirivu.com/data.json',
+            dataSrc: 'items'
+        },
+        columns: [
+            {data : 'id'},
+            {data : 'name'},
+            {data : 'company'},
+            {data : 'email'},
+            {data : 'phone'},
+            {data : 'balance'}
+        ],
+        dom: 'Blrftip',
+        buttons: [
+            {
+                extend: 'print',
+                exportOptions: {
+                    columns: ':visible'
+                },
+                footer: true,
+                customize: function ( win ) {
+                    $(win.document.body)
+                        .css( 'font-size', '10pt' );
+ 
+                    $(win.document.body).find( 'table' )
+                        .addClass( 'compact' )
+                        .css( 'font-size', 'inherit' );
+                }
+            },
+            'colvis'
+        ],
+        footerCallback: function ( row, data, start, end, display ) {
+            var api = this.api(), data;
+ 
+            // Remove the formatting to get integer data for summation
+            var intVal = function ( i ) {
+                return typeof i === 'string' ?
+                    i.replace(/[\$,]/g, '')*1 :
+                    typeof i === 'number' ?
+                        i : 0;
+            };
+ 
+            // Total over all pages
+            total = api
+                .column( 5 )
+                .data()
+                .reduce( function (a, b) {
+                    return intVal(a) + intVal(b);
+                }, 0 );
+ 
+            // Update footer
+            $( api.column( 5 ).footer() ).html(total);
+        }
+    });
+});
+
+document.getElementById('printBtn').addEventListener('click', function() {
+    // var table = document.getElementById('vueTable').parentNode.cloneNode(true);
+    // console.log(table.querySelectorAll('tr').length);
+    // var printPage = window.open();
+    // var wrap = document.createElement('div').appendChild(table);
+    // console.log(wrap.innerHTML)
+    // printPage.document.write(wrap.innerHTML);
+    // var printPage = window.open();
+    // var stylesheet = document.createElement('link');
+    // stylesheet.rel = 'stylesheet';
+    // // stylesheet.media = 'print';
+    // // stylesheet.type = 'text/css';
+    // stylesheet.href = 'css/table.css';
+    // printPage.document.head.appendChild(stylesheet);
+    // setTimeout(function() {
+
+    //     printPage.print();
+    //     printPage.close();
+    // }, 100);
+});
+
 Vue.component('checkbox', {
     template: '<div class="icheckbox_square-blue" v-bind:class="{checked:selected===true}" @click="clicked"></div>',
     props: ['item'],
@@ -46,7 +125,8 @@ new Vue({
         search: '',
         asc: true,
         sortCol: 'id',
-        cols: ['id', 'name', 'company', 'email', 'phone', 'balance']
+        cols: ['id', 'name', 'company', 'email', 'phone', 'balance'],
+        printCols: ['name', 'balance']
     },
     computed: {
         offset: function() {
@@ -182,6 +262,55 @@ new Vue({
             return Array.apply(0, Array(count)).map(function(element, index) {
                 return index + start;
             });
+        },
+        printTable: function() {
+            var self = this;
+
+            var printPage = window.open();
+
+            var table = document.createElement('table');
+
+            var thead = document.createElement('thead');
+            var thead_tr = document.createElement('tr');
+            this.printCols.forEach(function(col) {
+                var td = document.createElement('th');
+                td.innerHTML = col.substr(0, 1).toUpperCase() + col.substr(1);
+                thead_tr.appendChild(td);
+            })
+            thead.appendChild(thead_tr);
+
+            var tbody = document.createElement('tbody');
+            this.items.forEach(function(item) {
+                var tr = document.createElement('tr');
+                self.printCols.forEach(function(col) {
+                    var td = document.createElement('td');
+                    td.innerHTML = item[col];
+                    tr.appendChild(td);
+                });
+                tbody.appendChild(tr);
+            })
+
+            var tfoot = document.createElement('tfoot');
+
+            table.appendChild(thead);
+            table.appendChild(tbody);
+            table.appendChild(tfoot);
+
+            var wrap = document.createElement('div');
+            wrap.appendChild(table);
+            // console.log(wrap.innerHTML);
+            printPage.document.write(wrap.innerHTML);
+
+            var stylesheet = document.createElement('link');
+            stylesheet.rel = 'stylesheet';
+            // stylesheet.media = 'print';
+            // stylesheet.type = 'text/css';
+            stylesheet.href = 'css/table.css';
+            printPage.document.head.appendChild(stylesheet);
+            setTimeout(function() {
+                printPage.print();
+            }, 100);
+            // printPage.close();
         }
     }
 });
